@@ -8,3 +8,5 @@ out/
 *.iws
 .vagrant/
 .local
+node_modules
+npm-debug.log

@@ -1,6 +1,19 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.moowork.gradle:gradle-node-plugin:0.13"
+    }
+}
+
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: "com.moowork.node"
 
 mainClassName = "com.thoughtworks.ketsu.MainServer"
 
@@ -103,35 +116,35 @@ task standaloneJar(type: Jar, dependsOn: jar) {
     }
 }
 
-task itest(type: Exec) {
+node {
+    // If true, it will download node using above parameters.
+    // If false, it will try to use globally installed node.
+    download = true
+}
+
+task itest(type: NpmTask) {
+    description = "Run test"
+    workingDir = file("${project.rootDir}/verify")
+    args = ['run', 'test']
     def _env = [:]
     _env << System.getenv();
     environment = _env
-    commandLine 'java', '-jar', "build/libs/verify-standalone.jar"
 }
 
-task itestJar(type: Jar, dependsOn: jar) {
-    baseName = "verify"
-    classifier = "standalone"
-    version = ""
-
-    from files(sourceSets.itest.output.classesDir)
-    from files(sourceSets.itest.output.resourcesDir)
-
-    from configurations.itestCompile.asFileTree.files.collect { zipTree(it) }
-
-    exclude("META-INF/*.SF")
-    exclude("META-INF/*.DSA")
-    exclude("META-INF/*.RSA")
-    exclude("META-INF/*.RSA")
-    exclude("META-INF/*.RSA")
-    manifest {
-        attributes 'Main-Class': 'specs.Main'
-    }
+task installDeps(type: NpmTask) {
+    description = "Installs dependencies from package.json"
+    workingDir = file("${project.rootDir}/verify")
+    args = ['install']
 }
 
-itestJar.dependsOn itestClasses
-itest.dependsOn itestJar
+task installGolbalDeps(type: NpmTask) {
+    description = "Installs dependencies from package.json"
+    workingDir = file("${project.rootDir}/verify")
+    args = ['run', 'preinstall']
+}
+
+installDeps.dependsOn installGolbalDeps
+itest.dependsOn installDeps
 
 task integrationTest(type: Test) {
     testClassesDir = sourceSets.itest.output.classesDir
