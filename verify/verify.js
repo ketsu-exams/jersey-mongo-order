@@ -7,7 +7,8 @@ var request = require('request');
 var chai = require('chai');
 var assert = chai.assert;
 var tv4 = require('tv4');
-var endpoint = process.env.ENDPOINT;
+// var endpoint = process.env.ENDPOINT;
+var endpoint = '0.0.0.0:8088';
 
 console.log(endpoint);
 
@@ -19,7 +20,7 @@ describe("Test", function () {
     var options = {
       url: endpoint + '/products',
       method: 'POST',
-      qs: {},
+      qs: {}, 
       json: {
         "name": "xxx",
         "description": "xxx",
